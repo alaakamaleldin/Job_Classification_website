@@ -333,10 +333,10 @@ def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':
-    print("🚀 Starting Job Classification API...")
-    print("📊 Dashboard: http://localhost:5000")
-    print("🔗 API: http://localhost:5000/api/analyze") 
-    print("💚 Health Check: http://localhost:5000/api/health")
+    print(" Starting Job Classification API...")
+    print(" Dashboard: http://localhost:5000")
+    print(" API: http://localhost:5000/api/analyze") 
+    print(" Health Check: http://localhost:5000/api/health")
     print("-" * 50)
     
     # Check model status
