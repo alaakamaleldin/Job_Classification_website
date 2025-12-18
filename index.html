@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Job Classification & Skills Recommender</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .input-section {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            font-family: inherit;
+            background: white;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #2c3e50;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .analyze-btn {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .analyze-btn:hover {
+            background: #34495e;
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            border: 1px solid #ddd;
+            display: none;
+        }
+
+        .classification-result {
+            background: #f5f5f5;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        .classification-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .newly-created {
+            background: #27ae60;
+            color: white;
+        }
+
+        .reshaped {
+            background: #f39c12;
+            color: white;
+        }
+
+        .displaced {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .confidence-score {
+            font-size: 1rem;
+            color: #666;
+        }
+
+        .recommendations {
+            margin-top: 25px;
+        }
+
+        .recommendations h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .skill-item {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: box-shadow 0.2s;
+        }
+
+        .skill-item:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .skill-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .skill-details {
+            font-size: 0.95rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .guidance-section {
+            background: #fff9e6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid #f0d88a;
+        }
+
+        .guidance-section h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .guidance-text {
+            color: #856404;
+            line-height: 1.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #2c3e50;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .examples-section {
+            background: #fafafa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border: 1px solid #ddd;
+        }
+
+        .examples-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .example-btn {
+            background: #2c3e50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .example-btn:hover {
+            background: #34495e;
+        }
+
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            z-index: 1000;
+            display: none;
+        }
+
+        .status-api {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-demo {
+            background: #f39c12;
+            color: white;
+        }
+
+        .status-error {
+            background: #e74c3c;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+            }
+            
+            .input-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="status-indicator" class="status-indicator status-demo">
+        Checking API...
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>AI Job Classification Tool</h1>
+            <p>Discover if your job is at risk and get personalized skill recommendations</p>
+        </div>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2>Enter Your Job Information</h2>
+                
+                <div class="form-group">
+                    <label for="jobTitle">Job Title *</label>
+                    <input type="text" id="jobTitle" placeholder="e.g., Software Developer, Data Analyst, Marketing Manager">
+                </div>
+
+                <div class="form-group">
+                    <label for="skills">Your Skills *</label>
+                    <textarea id="skills" placeholder="e.g., Python, SQL, Project Management, Adobe Photoshop (separate with commas)"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Job Description (Optional)</label>
+                    <textarea id="description" placeholder="Brief description of your role and responsibilities"></textarea>
+                </div>
+
+                <button class="analyze-btn" onclick="analyzeJob()">
+                    Analyze Job & Get Recommendations
+                </button>
+            </div>
+
+            <div class="examples-section">
+                <h3>Try These Examples:</h3>
+                <button class="example-btn" onclick="loadExample('ai')">AI Researcher</button>
+                <button class="example-btn" onclick="loadExample('dataentry')">Data Entry Clerk</button>
+                <button class="example-btn" onclick="loadExample('devops')">DevOps Engineer</button>
+                <button class="example-btn" onclick="loadExample('accountant')">Accountant</button>
+                <button class="example-btn" onclick="loadExample('marketing')">Digital Marketer</button>
+                <button class="example-btn" onclick="loadExample('blockchain')">Blockchain Developer</button>
+            </div>
+
+            <div class="results-section" id="results">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'http://localhost:5000';
+        let isApiAvailable = false;
+
+        // Example data for testing
+        const examples = {
+            'ai': {
+                title: 'AI Researcher',
+                skills: 'PyTorch, NLP, Deep Learning, Research Writing, Python, Machine Learning',
+                description: 'Research and develop artificial intelligence algorithms and models for various applications'
+            },
+            'dataentry': {
+                title: 'Data Entry Clerk',
+                skills: 'Typing, MS Excel, Accuracy, Time Management, Data Processing',
+                description: 'Enter and update data in computer systems and databases with high accuracy'
+            },
+            'devops': {
+                title: 'DevOps Engineer',
+                skills: 'Docker, Kubernetes, CI/CD, AWS, Python, Monitoring, Jenkins',
+                description: 'Manage deployment pipelines and cloud infrastructure for scalable applications'
+            },
+            'accountant': {
+                title: 'Accountant',
+                skills: 'Excel, QuickBooks, Financial Reporting, Tax Preparation, Bookkeeping',
+                description: 'Maintain financial records and prepare tax documents for businesses'
+            },
+            'marketing': {
+                title: 'Digital Marketing Specialist',
+                skills: 'SEO, Google Analytics, Social Media, Content Creation, PPC, Email Marketing',
+                description: 'Create and manage digital marketing campaigns across multiple platforms'
+            },
+            'blockchain': {
+                title: 'Blockchain Developer',
+                skills: 'Solidity, Smart Contracts, Web3, Ethereum, JavaScript, Cryptocurrency',
+                description: 'Develop decentralized applications and smart contracts on blockchain platforms'
+            }
+        };
+
+        // Check API availability on page load
+        window.addEventListener('load', checkApiStatus);
+
+        async function checkApiStatus() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/health`, {
+                    method: 'GET',
+                    timeout: 3000
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    isApiAvailable = true;
+                    updateStatusIndicator('api', `API Connected (Model: ${data.model_loaded ? 'Loaded' : 'Demo'})`);
+                } else {
+                    throw new Error('API not responding');
+                }
+            } catch (error) {
+                isApiAvailable = false;
+                updateStatusIndicator('demo', 'Demo Mode (Start Flask backend for real predictions)');
+                console.log('API not available, using demo mode');
+            }
+        }
+
+        function updateStatusIndicator(type, message) {
+            const indicator = document.getElementById('status-indicator');
+            indicator.className = `status-indicator status-${type}`;
+            indicator.textContent = message;
+        }
+
+        function loadExample(exampleKey) {
+            const example = examples[exampleKey];
+            document.getElementById('jobTitle').value = example.title;
+            document.getElementById('skills').value = example.skills;
+            document.getElementById('description').value = example.description;
+        }
+
+        async function analyzeJob() {
+            const jobTitle = document.getElementById('jobTitle').value.trim();
+            const skills = document.getElementById('skills').value.trim();
+            const description = document.getElementById('description').value.trim();
+
+            if (!jobTitle || !skills) {
+                alert('Please fill in both Job Title and Skills fields.');
+                return;
+            }
+
+            // Show loading
+            showLoading();
+
+            try {
+                let result;
+                
+                if (isApiAvailable) {
+                    // Try real API first
+                    result = await callRealAPI(jobTitle, skills, description);
+                } else {
+                    // Use simulation
+                    result = simulateAnalysis(jobTitle, skills, description);
+                }
+                
+                displayResults(result);
+
+            } catch (error) {
+                console.error('Error:', error);
+                
+                // Fallback to simulation if API fails
+                updateStatusIndicator('error', 'API Error - Using Demo Mode');
+                const result = simulateAnalysis(jobTitle, skills, description);
+                displayResults(result);
+                
+                // Show warning about fallback
+                setTimeout(() => {
+                    alert('Note: API connection failed. Using demo mode for predictions. Please check if the Flask backend is running.');
+                }, 1000);
+            }
+        }
+
+        async function callRealAPI(jobTitle, skills, description) {
+            const response = await fetch(`${API_BASE_URL}/api/analyze`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    jobTitle: jobTitle,
+                    skills: skills,
+                    description: description
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `API Error: ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        function showLoading() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing your job with AI...</p>
+                    <p style="font-size: 0.9rem; color: #666; margin-top: 10px;">
+                        ${isApiAvailable ? 'Using real AI model' : 'Using demo simulation'}
+                    </p>
+                </div>
+            `;
+        }
+
+        function simulateAnalysis(jobTitle, skills, description) {
+            // Enhanced simulation logic
+            const skillsLower = skills.toLowerCase();
+            const titleLower = jobTitle.toLowerCase();
+            let classification, confidence, guidance;
+            
+            // AI/Tech roles - Newly Created
+            if (skillsLower.includes('ai') || skillsLower.includes('machine learning') || 
+                skillsLower.includes('deep learning') || skillsLower.includes('blockchain') ||
+                skillsLower.includes('kubernetes') || skillsLower.includes('devops') ||
+                skillsLower.includes('cloud') || skillsLower.includes('pytorch') ||
+                titleLower.includes('ai') || titleLower.includes('blockchain') ||
+                titleLower.includes('devops') || titleLower.includes('cloud')) {
+                classification = 'Newly Created';
+                confidence = 0.85 + Math.random() * 0.1;
+                guidance = 'This is an emerging role with excellent future prospects. Continue developing cutting-edge skills in this area.';
+            }
+            // Manual/Traditional roles - Displaced
+            else if (skillsLower.includes('excel') || skillsLower.includes('typing') || 
+                     skillsLower.includes('manual') || skillsLower.includes('assembly') ||
+                     skillsLower.includes('data entry') || titleLower.includes('clerk') ||
+                     titleLower.includes('operator') || titleLower.includes('assembly')) {
+                classification = 'Displaced';
+                confidence = 0.75 + Math.random() * 0.15;
+                guidance = 'This role is at high risk of displacement. Focus on acquiring emerging technology skills to transition into new roles.';
+            }
+            // Everything else - Reshaped
+            else {
+                classification = 'Reshaped';
+                confidence = 0.70 + Math.random() * 0.2;
+                guidance = 'This role is evolving. The recommended skills will help you adapt to changing requirements and stay relevant.';
+            }
+
+            // Generate sample recommendations
+            const recommendations = generateSampleRecommendations(classification, skills);
+
+            return {
+                classification,
+                confidence,
+                guidance,
+                recommendations,
+                jobTitle,
+                skills: skills.split(',').map(s => s.trim())
+            };
+        }
+
+        function generateSampleRecommendations(classification, currentSkills) {
+            const recommendations = {
+                'Newly Created': [
+                    { name: 'Advanced Machine Learning', reason: 'High demand in AI roles', frequency: 89 },
+                    { name: 'Cloud Computing (AWS/Azure)', reason: 'Infrastructure for AI systems', frequency: 76 },
+                    { name: 'Data Visualization', reason: 'Communicating AI insights', frequency: 64 },
+                    { name: 'MLOps', reason: 'Production ML systems', frequency: 58 }
+                ],
+                'Displaced': [
+                    { name: 'Python Programming', reason: 'Automation and data analysis', frequency: 92 },
+                    { name: 'Data Analysis', reason: 'Transform manual work to insights', frequency: 85 },
+                    { name: 'Digital Marketing', reason: 'Growing online business needs', frequency: 71 },
+                    { name: 'Process Automation', reason: 'Replace manual tasks', frequency: 68 },
+                    { name: 'SQL Database Skills', reason: 'Data management capabilities', frequency: 64 }
+                ],
+                'Reshaped': [
+                    { name: 'Digital Tools Proficiency', reason: 'Modern workflow requirements', frequency: 78 },
+                    { name: 'Data Analytics', reason: 'Data-driven decision making', frequency: 73 },
+                    { name: 'Collaboration Tools', reason: 'Remote work capabilities', frequency: 65 },
+                    { name: 'CRM Software', reason: 'Customer relationship management', frequency: 59 }
+                ]
+            };
+
+            return recommendations[classification] || [];
+        }
+
+        function displayResults(result) {
+            const resultsDiv = document.getElementById('results');
+            
+            const classificationLabels = {
+                'Newly Created': 'Newly Created',
+                'Reshaped': 'Reshaped',
+                'Displaced': 'Displaced',
+                'newly-created': 'Newly Created',
+                'reshaped': 'Reshaped',
+                'displaced': 'Displaced'
+            };
+
+            // Convert classification to CSS class
+            const cssClass = result.classification.toLowerCase().replace(' ', '-');
+
+            let recommendationsHTML = '';
+            if (result.recommendations && result.recommendations.length > 0) {
+                recommendationsHTML = `
+                    <div class="recommendations">
+                        <h3>Recommended Skills to Learn</h3>
+                        ${result.recommendations.map((rec, index) => `
+                            <div class="skill-item">
+                                <div class="skill-name">${index + 1}. ${rec.name}</div>
+                                <div class="skill-details">
+                                    <strong>Why:</strong> ${rec.reason}<br>
+                                    <strong>Market Demand:</strong> Found in ${rec.frequency} job postings
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            resultsDiv.innerHTML = `
+                <h2 style="color: #2c3e50;">Analysis Results</h2>
+                
+                <div class="classification-result">
+                    <div class="classification-badge ${cssClass}">
+                        ${classificationLabels[result.classification] || result.classification}
+                    </div>
+                    <div class="confidence-score">
+                        Confidence: ${(result.confidence * 100).toFixed(1)}%
+                    </div>
+                </div>
+
+                <div class="guidance-section">
+                    <h3>Career Guidance</h3>
+                    <div class="guidance-text">${result.guidance}</div>
+                </div>
+
+                <div style="background: #fafafa; padding: 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid #ddd;">
+                    <h3 style="color: #2c3e50;">Your Profile Summary</h3>
+                    <p style="color: #666;"><strong>Job Title:</strong> ${result.jobTitle}</p>
+                    <p style="color: #666;"><strong>Current Skills:</strong> ${Array.isArray(result.skills) ? result.skills.join(', ') : result.skills}</p>
+                </div>
+
+                ${recommendationsHTML}
+
+                <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin-top: 20px; border: 1px solid #b8d4e8;">
+                    <strong style="color: #2c3e50;">Next Steps:</strong>
+                    <ul style="margin-left: 20px; margin-top: 10px; color: #555;">
+                        <li>Focus on the top 3 recommended skills</li>
+                        <li>Look for online courses or certifications</li>
+                        <li>Consider practical projects to build experience</li>
+                        <li>Network with professionals in emerging fields</li>
+                    </ul>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
